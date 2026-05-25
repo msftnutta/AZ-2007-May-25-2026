@@ -103,7 +103,8 @@ app.get('/api/weather', async (req, res) => {
             emoji: getWeatherEmoji(current.weather_code),
             description: getWeatherDescription(current.weather_code)
           };
-        } catch {
+        } catch (err) {
+          console.error('Weather fetch error for', city.name, err.message);
           return {
             id: city.id,
             name: city.name,
