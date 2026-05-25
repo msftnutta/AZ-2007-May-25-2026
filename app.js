@@ -52,6 +52,10 @@ app.get('/', async (req, res) => {
       }
     });
 
+    // extract relevant weather data from response
+    // the below part is to extrat
+
+
     const result = response.data.results[0];
     weather = {
       description: result.phrase,
