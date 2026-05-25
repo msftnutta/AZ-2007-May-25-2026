@@ -1,0 +1,31 @@
+{
+  "name": "az-2007-may-25-2026",
+  "version": "1.0.0",
+  "description": "for training AZ-2007 on 27 May 2026",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/msftnutta/AZ-2007-May-25-2026.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/msftnutta/AZ-2007-May-25-2026/issues"
+  },
+  "homepage": "https://github.com/msftnutta/AZ-2007-May-25-2026#readme",
+  "dependencies": {
+    "@azure/identity": "^4.13.1",
+    "axios": "^1.16.1",
+    "dotenv": "^17.4.2",
+    "ejs": "^5.0.2",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "tailwindcss": "^4.3.0"
+  }
+}

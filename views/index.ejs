@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weather & DateTime Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#6366f1',
+            secondary: '#8b5cf6',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-20px); }
+    }
+    .float { animation: float 3s ease-in-out infinite; }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 min-h-screen font-sans antialiased">
+  
+  <!-- Header -->
+  <header class="backdrop-blur-md bg-white/10 border-b border-white/20">
+    <div class="container mx-auto px-4 py-6">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path>
+            </svg>
+          </div>
+          <h1 class="text-2xl font-bold text-white tracking-tight">Weather Dashboard</h1>
+        </div>
+        <div class="hidden md:flex items-center space-x-2 text-white/90 text-sm">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          </svg>
+          <span>Kuala Lumpur, Malaysia</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="container mx-auto px-4 py-8 md:py-12">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 max-w-6xl mx-auto">
+      
+      <!-- DateTime Card -->
+      <div class="group hover:scale-105 transition-all duration-300">
+        <div class="backdrop-blur-xl bg-white/90 rounded-3xl shadow-2xl overflow-hidden border border-white/20">
+          <div class="bg-gradient-to-r from-indigo-500 to-purple-600 p-6">
+            <div class="flex items-center space-x-3">
+              <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm float">
+                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+              <h2 class="text-2xl font-bold text-white">Current Date & Time</h2>
+            </div>
+          </div>
+          <div class="p-8 text-center">
+            <p class="text-lg text-gray-600 mb-3 font-medium"><%= dateTime.date %></p>
+            <p class="text-6xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4"><%= dateTime.time %></p>
+            <div class="flex items-center justify-center space-x-4 text-sm text-gray-500 mt-6">
+              <div class="flex items-center space-x-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                </svg>
+                <span>Live</span>
+              </div>
+              <div class="w-1 h-1 bg-gray-300 rounded-full"></div>
+              <div class="flex items-center space-x-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>Local Time</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Weather Card -->
+      <div class="group hover:scale-105 transition-all duration-300">
+        <div class="backdrop-blur-xl bg-white/90 rounded-3xl shadow-2xl overflow-hidden border border-white/20 h-full">
+          <div class="bg-gradient-to-r from-purple-500 to-pink-600 p-6">
+            <div class="flex items-center space-x-3">
+              <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm float" style="animation-delay: 0.5s;">
+                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path>
+                </svg>
+              </div>
+              <h2 class="text-2xl font-bold text-white">Weather Forecast</h2>
+            </div>
+          </div>
+          
+          <div class="p-8">
+            <% if (error) { %>
+              <div class="bg-red-50 border-l-4 border-red-400 p-4 rounded-lg">
+                <div class="flex items-center">
+                  <svg class="w-6 h-6 text-red-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <p class="text-red-700 text-sm"><%= error %></p>
+                </div>
+              </div>
+            <% } else if (weather) { %>
+              <div class="text-center">
+                <p class="text-xl text-gray-600 mb-4 font-medium capitalize"><%= weather.description %></p>
+                <p class="text-7xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-8"><%= weather.temperature %><%= weather.unit %></p>
+                
+                <div class="grid grid-cols-2 gap-4 mt-6">
+                  <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-4 border border-blue-200">
+                    <div class="flex items-center justify-center space-x-2 mb-2">
+                      <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707"></path>
+                      </svg>
+                      <span class="text-xs text-blue-600 font-semibold uppercase">Humidity</span>
+                    </div>
+                    <p class="text-2xl font-bold text-blue-700"><%= weather.humidity %>%</p>
+                  </div>
+                  
+                  <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-2xl p-4 border border-emerald-200">
+                    <div class="flex items-center justify-center space-x-2 mb-2">
+                      <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                      </svg>
+                      <span class="text-xs text-emerald-600 font-semibold uppercase">Wind</span>
+                    </div>
+                    <p class="text-2xl font-bold text-emerald-700"><%= weather.wind %> <span class="text-base"><%= weather.windUnit %></span></p>
+                  </div>
+                </div>
+              </div>
+            <% } else { %>
+              <div class="text-center py-8">
+                <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <p class="text-gray-500">No weather data available.</p>
+              </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Info Footer -->
+    <div class="mt-8 max-w-6xl mx-auto">
+      <div class="backdrop-blur-xl bg-white/80 rounded-2xl shadow-lg p-6 border border-white/20">
+        <div class="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-gray-700">Powered by Azure Maps</p>
+              <p class="text-xs text-gray-500">Real-time weather data</p>
+            </div>
+          </div>
+          <div class="flex items-center space-x-4">
+            <button onclick="location.reload()" class="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+              </svg>
+              <span class="text-sm font-medium">Refresh</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Auto-refresh script -->
+  <script>
+    // Auto-refresh every 30 seconds
+    setTimeout(() => location.reload(), 30000);
+  </script>
+
+</body>
+</html>
