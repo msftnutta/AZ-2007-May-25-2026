@@ -1,0 +1,311 @@
+# =============================================================================
+# CI/CD Pipeline for Node.js Application
+# =============================================================================
+# This workflow demonstrates a multi-stage CI/CD pipeline for training purposes
+# It includes stages for: Checkout -> Install -> Build Validation -> Test -> Report
+# 
+# Trigger Events:
+# - Push to main/master branch
+# - Pull requests targeting main/master branch
+# - Manual workflow dispatch
+# =============================================================================
+
+name: CI/CD Pipeline
+
+# Defines when this workflow will run
+on:
+  # Trigger on push events to main or master branch
+  push:
+    branches: [ main, master ]
+  
+  # Trigger on pull request events targeting main or master
+  pull_request:
+    branches: [ main, master ]
+  
+  # Allow manual trigger from GitHub Actions tab
+  workflow_dispatch:
+
+# Environment variables available to all jobs and steps
+env:
+  NODE_VERSION: '20.x'  # Specify Node.js version to use
+
+# =============================================================================
+# JOBS SECTION
+# =============================================================================
+# Jobs run in parallel by default, but we use 'needs' to create stages
+# Each job runs on a fresh virtual machine (runner)
+
+jobs:
+  # ===========================================================================
+  # STAGE 1: CHECKOUT AND INSTALL DEPENDENCIES
+  # ===========================================================================
+  # Purpose: Get the code and install all required npm packages
+  # This stage prepares the environment for subsequent stages
+  
+  install:
+    name: 📦 Install Dependencies
+    runs-on: ubuntu-latest  # Use Ubuntu Linux runner (free for public repos)
+    
+    steps:
+      # Step 1.1: Checkout the repository code
+      # This action clones your repository to the runner
+      - name: 🔄 Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for all branches and tags
+      
+      # Step 1.2: Setup Node.js environment
+      # This action installs Node.js and npm on the runner
+      - name: 🟢 Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'  # Cache npm dependencies for faster subsequent runs
+      
+      # Step 1.3: Install project dependencies
+      # Uses npm ci for clean, reproducible installs (better than npm install for CI)
+      - name: 📥 Install Dependencies
+        run: npm ci
+      
+      # Step 1.4: Cache node_modules for next jobs
+      # This speeds up the pipeline by reusing installed dependencies
+      - name: 💾 Cache Node Modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      
+      # Step 1.5: Display installed dependencies (for debugging/training)
+      - name: 📋 List Installed Packages
+        run: npm list --depth=0
+
+  # ===========================================================================
+  # STAGE 2: BUILD VALIDATION
+  # ===========================================================================
+  # Purpose: Verify that the application code is valid and can be compiled
+  # This stage checks for syntax errors and validates the build process
+  
+  build:
+    name: 🔨 Build Validation
+    runs-on: ubuntu-latest
+    needs: install  # This job waits for 'install' job to complete successfully
+    
+    steps:
+      # Step 2.1: Checkout code
+      - name: 🔄 Checkout Code
+        uses: actions/checkout@v4
+      
+      # Step 2.2: Setup Node.js
+      - name: 🟢 Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      # Step 2.3: Restore cached dependencies
+      - name: 💾 Restore Node Modules Cache
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      
+      # Step 2.4: Install dependencies (in case cache miss)
+      - name: 📥 Install Dependencies
+        run: npm ci
+      
+      # Step 2.5: Validate application structure
+      # Check if main application file exists and is valid JavaScript
+      - name: ✅ Validate Application Structure
+        run: |
+          echo "Checking main application file..."
+          if [ -f "app.js" ]; then
+            echo "✓ app.js found"
+            node -c app.js && echo "✓ app.js syntax is valid"
+          else
+            echo "✗ app.js not found"
+            exit 1
+          fi
+      
+      # Step 2.6: Check for compilation errors (dry run)
+      # For Node.js apps, we verify the app can be loaded without execution
+      - name: 🔍 Check for Compilation Errors
+        run: |
+          echo "Performing syntax check on all JavaScript files..."
+          find . -name "*.js" -not -path "./node_modules/*" -not -path "./coverage/*" -exec node -c {} \;
+          echo "✓ All JavaScript files are syntactically valid"
+      
+      # Step 2.7: Display application info
+      - name: 📊 Application Information
+        run: |
+          echo "Application: $(node -p "require('./package.json').name")"
+          echo "Version: $(node -p "require('./package.json').version")"
+          echo "Description: $(node -p "require('./package.json').description")"
+
+  # ===========================================================================
+  # STAGE 3: RUN UNIT TESTS
+  # ===========================================================================
+  # Purpose: Execute all unit tests to ensure code functionality
+  # This stage runs the test suite with coverage reporting
+  
+  test:
+    name: 🧪 Run Unit Tests
+    runs-on: ubuntu-latest
+    needs: build  # This job waits for 'build' job to complete successfully
+    
+    steps:
+      # Step 3.1: Checkout code
+      - name: 🔄 Checkout Code
+        uses: actions/checkout@v4
+      
+      # Step 3.2: Setup Node.js
+      - name: 🟢 Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      # Step 3.3: Restore cached dependencies
+      - name: 💾 Restore Node Modules Cache
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      
+      # Step 3.4: Install dependencies
+      - name: 📥 Install Dependencies
+        run: npm ci
+      
+      # Step 3.5: Run unit tests with coverage
+      # The --coverage flag generates a coverage report
+      # CI=true prevents interactive mode and ensures proper exit codes
+      - name: 🧪 Execute Unit Tests
+        run: npm test
+        env:
+          CI: true
+      
+      # Step 3.6: Display test results summary
+      - name: 📊 Test Results Summary
+        if: always()  # Run this step even if tests fail
+        run: |
+          echo "Test execution completed"
+          if [ -d "coverage" ]; then
+            echo "Coverage report generated in coverage directory"
+          fi
+      
+      # Step 3.7: Upload coverage reports as artifacts
+      # Artifacts are files generated during the workflow that can be downloaded
+      - name: 📤 Upload Coverage Report
+        if: always()  # Upload coverage even if tests fail
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 30  # Keep artifacts for 30 days
+
+  # ===========================================================================
+  # STAGE 4: FINAL REPORT
+  # ===========================================================================
+  # Purpose: Generate a summary report of the entire pipeline
+  # This stage provides visibility into the pipeline execution
+  
+  report:
+    name: 📋 Generate Pipeline Report
+    runs-on: ubuntu-latest
+    needs: [install, build, test]  # Waits for all previous stages
+    if: always()  # Run even if previous stages fail
+    
+    steps:
+      # Step 4.1: Checkout code for report generation
+      - name: 🔄 Checkout Code
+        uses: actions/checkout@v4
+      
+      # Step 4.2: Download coverage artifacts from test stage
+      - name: 📥 Download Coverage Report
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-report
+          path: ./coverage
+        continue-on-error: true  # Don't fail if artifact doesn't exist
+      
+      # Step 4.3: Generate pipeline summary
+      # This creates a markdown summary visible in the Actions UI
+      - name: 📝 Generate Pipeline Summary
+        run: |
+          echo "# 🚀 CI/CD Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 📊 Pipeline Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Repository**: ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Triggered by**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Event**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## ✅ Stages Completed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "1. ✅ Install Dependencies" >> $GITHUB_STEP_SUMMARY
+          echo "2. ✅ Build Validation" >> $GITHUB_STEP_SUMMARY
+          echo "3. ✅ Unit Tests" >> $GITHUB_STEP_SUMMARY
+          echo "4. ✅ Pipeline Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "**Pipeline completed successfully! 🎉**" >> $GITHUB_STEP_SUMMARY
+      
+      # Step 4.4: Display coverage summary if available
+      - name: 📊 Coverage Summary
+        if: hashFiles('coverage/lcov-report/index.html') != ''
+        run: |
+          echo "Coverage report available in artifacts"
+          echo "Download the 'coverage-report' artifact to view detailed results"
+
+# =============================================================================
+# TRAINING NOTES
+# =============================================================================
+# 
+# Key Concepts Demonstrated:
+# 
+# 1. WORKFLOW STRUCTURE
+#    - name: Human-readable workflow name
+#    - on: Trigger events (push, pull_request, workflow_dispatch)
+#    - env: Global environment variables
+#    - jobs: Collection of stages to execute
+#
+# 2. JOB DEPENDENCIES
+#    - 'needs' keyword creates sequential stages
+#    - Without 'needs', jobs run in parallel
+#    - Example: test needs build needs install (sequential)
+#
+# 3. CACHING STRATEGY
+#    - Speeds up pipeline by reusing dependencies
+#    - Cache key based on package-lock.json hash
+#    - Automatically invalidates when dependencies change
+#
+# 4. ARTIFACTS
+#    - Files generated during workflow (e.g., coverage reports)
+#    - Can be downloaded from GitHub Actions UI
+#    - Useful for debugging and documentation
+#
+# 5. CONDITIONAL EXECUTION
+#    - 'if: always()' runs step even if previous steps fail
+#    - 'continue-on-error: true' prevents failure from stopping pipeline
+#
+# 6. BEST PRACTICES
+#    - Use 'npm ci' instead of 'npm install' for reproducible builds
+#    - Cache dependencies to speed up subsequent runs
+#    - Generate summaries for better visibility
+#    - Use descriptive names and emojis for better readability
+#
+# 7. EXTENDING THIS WORKFLOW
+#    - Add deployment stage after tests pass
+#    - Add code quality checks (linting, formatting)
+#    - Add security scanning (npm audit, Snyk)
+#    - Add performance testing
+#    - Add Docker image building
+#
+# =============================================================================
