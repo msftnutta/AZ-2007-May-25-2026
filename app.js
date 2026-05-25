@@ -73,16 +73,7 @@ app.get('/', (req, res) => {
     })
   };
 
-  // Group cities by continent
-  const continents = {};
-  cities.forEach(city => {
-    if (!continents[city.continent]) {
-      continents[city.continent] = [];
-    }
-    continents[city.continent].push(city);
-  });
-
-  res.render('index', { dateTime, cities, continents });
+  res.render('index', { dateTime, cities });
 });
 
 // API endpoint for weather data of all cities
@@ -184,6 +175,10 @@ app.get('/city/:id', async (req, res) => {
   res.render('city', { city, forecast, error });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server running at http://localhost:${PORT}`);
+  });
+}
+
+module.exports = { app, cities, getWeatherEmoji, getWeatherDescription };
