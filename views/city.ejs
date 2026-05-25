@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weather Forecast - <%= city.name %></title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    .float { animation: float 3s ease-in-out infinite; }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 min-h-screen font-sans antialiased">
+  
+  <!-- Header -->
+  <header class="backdrop-blur-md bg-white/5 border-b border-white/10">
+    <div class="container mx-auto px-4 py-5">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <a href="/" class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center backdrop-blur-sm hover:bg-white/20 transition-colors">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+          </a>
+          <h1 class="text-2xl font-bold text-white tracking-tight"><%= city.name %></h1>
+          <span class="text-white/60 text-sm">(<%= city.continent %>)</span>
+        </div>
+        <div class="hidden md:flex items-center space-x-2 text-white/80 text-sm bg-white/10 px-4 py-2 rounded-lg">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <span id="local-time">--:--</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container mx-auto px-4 py-8 max-w-4xl">
+    <% if (error) { %>
+      <div class="bg-red-500/10 border border-red-500/30 rounded-2xl p-6 text-center">
+        <p class="text-red-300 text-lg">⚠️ <%= error %></p>
+        <a href="/" class="inline-block mt-4 text-indigo-400 hover:text-indigo-300 underline">← Back to World Map</a>
+      </div>
+    <% } else if (forecast) { %>
+      <!-- Current Weather -->
+      <div class="backdrop-blur-xl bg-white/5 rounded-3xl border border-white/10 overflow-hidden mb-8">
+        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-6">
+          <h2 class="text-xl font-bold text-white">Current Weather</h2>
+        </div>
+        <div class="p-8">
+          <div class="flex flex-col md:flex-row items-center justify-between">
+            <div class="text-center md:text-left mb-6 md:mb-0">
+              <span class="text-7xl mb-4 block float"><%= forecast.current.emoji %></span>
+              <p class="text-white/80 text-xl capitalize mt-4"><%= forecast.current.description %></p>
+            </div>
+            <div class="text-center">
+              <p class="text-7xl font-bold text-white"><%= forecast.current.temperature %>°C</p>
+              <p class="text-white/60 mt-2">Feels like <%= forecast.current.feelsLike %>°C</p>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mt-8">
+            <div class="bg-white/5 rounded-2xl p-4 text-center border border-white/10">
+              <p class="text-xs text-gray-400 uppercase mb-1">Temperature</p>
+              <p class="text-2xl font-bold text-white"><%= forecast.current.temperature %>°C</p>
+            </div>
+            <div class="bg-white/5 rounded-2xl p-4 text-center border border-white/10">
+              <p class="text-xs text-gray-400 uppercase mb-1">Feels Like</p>
+              <p class="text-2xl font-bold text-white"><%= forecast.current.feelsLike %>°C</p>
+            </div>
+            <div class="bg-white/5 rounded-2xl p-4 text-center border border-white/10">
+              <p class="text-xs text-gray-400 uppercase mb-1">Humidity</p>
+              <p class="text-2xl font-bold text-blue-300"><%= forecast.current.humidity %>%</p>
+            </div>
+            <div class="bg-white/5 rounded-2xl p-4 text-center border border-white/10">
+              <p class="text-xs text-gray-400 uppercase mb-1">Wind Speed</p>
+              <p class="text-2xl font-bold text-emerald-300"><%= forecast.current.windSpeed %> km/h</p>
+            </div>
+            <div class="bg-white/5 rounded-2xl p-4 text-center border border-white/10">
+              <p class="text-xs text-gray-400 uppercase mb-1">Timezone</p>
+              <p class="text-sm font-bold text-indigo-300"><%= city.timezone %></p>
+            </div>
+            <div class="bg-white/5 rounded-2xl p-4 text-center border border-white/10">
+              <p class="text-xs text-gray-400 uppercase mb-1">Coordinates</p>
+              <p class="text-sm font-bold text-purple-300"><%= city.lat.toFixed(2) %>°, <%= city.lon.toFixed(2) %>°</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7-Day Forecast -->
+      <div class="backdrop-blur-xl bg-white/5 rounded-3xl border border-white/10 overflow-hidden">
+        <div class="bg-gradient-to-r from-purple-600 to-pink-600 p-6">
+          <h2 class="text-xl font-bold text-white">7-Day Forecast</h2>
+        </div>
+        <div class="p-6">
+          <div class="space-y-3">
+            <% forecast.daily.forEach(function(day, index) { %>
+              <div class="flex items-center justify-between bg-white/5 rounded-xl p-4 border border-white/5 hover:border-indigo-500/30 transition-colors">
+                <div class="flex items-center space-x-4 min-w-[140px]">
+                  <span class="text-2xl"><%= day.emoji %></span>
+                  <div>
+                    <p class="text-white font-medium text-sm"><%= day.date %></p>
+                    <p class="text-white/50 text-xs"><%= day.description %></p>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-6 text-sm">
+                  <div class="text-center">
+                    <p class="text-white font-bold"><%= day.maxTemp %>°</p>
+                    <p class="text-white/40"><%= day.minTemp %>°</p>
+                  </div>
+                  <div class="hidden md:block text-center min-w-[60px]">
+                    <p class="text-blue-300 text-xs">💧 <%= day.precipitation %> mm</p>
+                  </div>
+                  <div class="hidden md:block text-center min-w-[60px]">
+                    <p class="text-emerald-300 text-xs">💨 <%= day.windSpeed %> km/h</p>
+                  </div>
+                </div>
+              </div>
+            <% }); %>
+          </div>
+        </div>
+      </div>
+    <% } else { %>
+      <div class="text-center py-12">
+        <p class="text-white/60 text-lg">No forecast data available.</p>
+      </div>
+    <% } %>
+
+    <!-- Back link -->
+    <div class="mt-8 text-center">
+      <a href="/" class="inline-flex items-center space-x-2 text-indigo-400 hover:text-indigo-300 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+        <span>Back to World Map</span>
+      </a>
+    </div>
+  </main>
+
+  <script>
+    // Update local time
+    function updateTime() {
+      try {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('en-US', {
+          timeZone: '<%= city.timezone %>',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: true
+        });
+        document.getElementById('local-time').textContent = timeStr;
+      } catch (e) {}
+    }
+    updateTime();
+    setInterval(updateTime, 1000);
+  </script>
+</body>
+</html>

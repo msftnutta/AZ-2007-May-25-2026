@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Weather & DateTime Dashboard</title>
+  <title>World Weather Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -20,182 +20,346 @@
   <style>
     @keyframes float {
       0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-20px); }
+      50% { transform: translateY(-10px); }
+    }
+    @keyframes pulse-dot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.5); opacity: 0.5; }
     }
     .float { animation: float 3s ease-in-out infinite; }
+    .pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+    .city-marker { cursor: pointer; transition: transform 0.2s; }
+    .city-marker:hover { transform: scale(1.3); }
+    .callout {
+      position: absolute;
+      z-index: 50;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(5px);
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .callout.visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    .map-container {
+      position: relative;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
   </style>
 </head>
-<body class="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 min-h-screen font-sans antialiased">
+<body class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 min-h-screen font-sans antialiased">
   
   <!-- Header -->
-  <header class="backdrop-blur-md bg-white/10 border-b border-white/20">
-    <div class="container mx-auto px-4 py-6">
+  <header class="backdrop-blur-md bg-white/5 border-b border-white/10">
+    <div class="container mx-auto px-4 py-5">
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path>
-            </svg>
+          <div class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center backdrop-blur-sm">
+            <span class="text-2xl">🌍</span>
           </div>
-          <h1 class="text-2xl font-bold text-white tracking-tight">Weather Dashboard</h1>
+          <h1 class="text-2xl font-bold text-white tracking-tight">World Weather Dashboard</h1>
         </div>
-        <div class="hidden md:flex items-center space-x-2 text-white/90 text-sm">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-          </svg>
-          <span>Singapore</span>
+        <div class="flex items-center space-x-4">
+          <div class="hidden md:flex items-center space-x-2 text-white/80 text-sm bg-white/10 px-4 py-2 rounded-lg">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            <span><%= dateTime.date %></span>
+          </div>
         </div>
       </div>
     </div>
   </header>
 
   <!-- Main Content -->
-  <main class="container mx-auto px-4 py-8 md:py-12">
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 max-w-6xl mx-auto">
-      
-      <!-- DateTime Card -->
-      <div class="group hover:scale-105 transition-all duration-300">
-        <div class="backdrop-blur-xl bg-white/90 rounded-3xl shadow-2xl overflow-hidden border border-white/20">
-          <div class="bg-gradient-to-r from-indigo-500 to-purple-600 p-6">
-            <div class="flex items-center space-x-3">
-              <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm float">
-                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-              </div>
-              <h2 class="text-2xl font-bold text-white">Current Date & Time</h2>
-            </div>
-          </div>
-          <div class="p-8 text-center">
-            <p class="text-lg text-gray-600 mb-3 font-medium"><%= dateTime.date %></p>
-            <p id="live-time" class="text-6xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4"><%= dateTime.time %></p>
-            <div class="flex items-center justify-center space-x-4 text-sm text-gray-500 mt-6">
-              <div class="flex items-center space-x-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                </svg>
-                <span>Live</span>
-              </div>
-              <div class="w-1 h-1 bg-gray-300 rounded-full"></div>
-              <div class="flex items-center space-x-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <span>Local Time</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Weather Card -->
-      <div class="group hover:scale-105 transition-all duration-300">
-        <div class="backdrop-blur-xl bg-white/90 rounded-3xl shadow-2xl overflow-hidden border border-white/20 h-full">
-          <div class="bg-gradient-to-r from-purple-500 to-pink-600 p-6">
-            <div class="flex items-center space-x-3">
-              <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm float" style="animation-delay: 0.5s;">
-                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path>
-                </svg>
-              </div>
-              <h2 class="text-2xl font-bold text-white">Weather Forecast</h2>
-            </div>
-          </div>
-          
-          <div class="p-8">
-            <% if (error) { %>
-              <div class="bg-red-50 border-l-4 border-red-400 p-4 rounded-lg">
-                <div class="flex items-center">
-                  <svg class="w-6 h-6 text-red-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                  </svg>
-                  <p class="text-red-700 text-sm"><%= error %></p>
-                </div>
-              </div>
-            <% } else if (weather) { %>
-              <div class="text-center">
-                <p class="text-xl text-gray-600 mb-4 font-medium capitalize"><%= weather.description %></p>
-                <p class="text-7xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-8"><%= weather.temperature %><%= weather.unit %></p>
-                
-                <div class="grid grid-cols-2 gap-4 mt-6">
-                  <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-4 border border-blue-200">
-                    <div class="flex items-center justify-center space-x-2 mb-2">
-                      <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707"></path>
-                      </svg>
-                      <span class="text-xs text-blue-600 font-semibold uppercase">Humidity</span>
-                    </div>
-                    <p class="text-2xl font-bold text-blue-700"><%= weather.humidity %>%</p>
-                  </div>
-                  
-                  <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-2xl p-4 border border-emerald-200">
-                    <div class="flex items-center justify-center space-x-2 mb-2">
-                      <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-                      </svg>
-                      <span class="text-xs text-emerald-600 font-semibold uppercase">Wind</span>
-                    </div>
-                    <p class="text-2xl font-bold text-emerald-700"><%= weather.wind %> <span class="text-base"><%= weather.windUnit %></span></p>
-                  </div>
-                </div>
-              </div>
-            <% } else { %>
-              <div class="text-center py-8">
-                <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <p class="text-gray-500">No weather data available.</p>
-              </div>
-            <% } %>
-          </div>
-        </div>
-      </div>
-
+  <main class="container mx-auto px-4 py-6">
+    <!-- Date display for mobile -->
+    <div class="md:hidden text-center mb-4">
+      <p class="text-white/80 text-sm bg-white/10 inline-block px-4 py-2 rounded-lg"><%= dateTime.date %></p>
     </div>
 
-    <!-- Info Footer -->
+    <!-- World Map Section -->
+    <div class="map-container" id="map-container">
+      <div class="backdrop-blur-xl bg-white/5 rounded-3xl shadow-2xl overflow-hidden border border-white/10 p-4 md:p-8">
+        <div class="relative" id="world-map-wrapper">
+          <!-- SVG World Map -->
+          <svg id="world-map" viewBox="0 0 1000 500" class="w-full h-auto" style="min-height: 300px;">
+            <!-- Ocean background -->
+            <rect width="1000" height="500" fill="#0f172a" rx="12"/>
+            
+            <!-- Grid lines -->
+            <g stroke="#1e3a5f" stroke-width="0.5" opacity="0.3">
+              <line x1="0" y1="250" x2="1000" y2="250"/>
+              <line x1="500" y1="0" x2="500" y2="500"/>
+              <line x1="0" y1="125" x2="1000" y2="125"/>
+              <line x1="0" y1="375" x2="1000" y2="375"/>
+              <line x1="250" y1="0" x2="250" y2="500"/>
+              <line x1="750" y1="0" x2="750" y2="500"/>
+            </g>
+
+            <!-- Simplified continent outlines -->
+            <!-- North America -->
+            <path d="M 120,80 L 150,70 180,75 220,90 250,100 270,120 280,140 275,160 260,180 240,190 230,210 220,230 210,240 200,235 190,220 180,200 160,180 140,160 130,140 120,120 115,100 Z" 
+                  fill="#1e3a5f" stroke="#2d5a8e" stroke-width="1" opacity="0.6"/>
+            <!-- South America -->
+            <path d="M 240,270 L 260,260 280,270 290,290 300,320 295,350 285,380 270,400 255,410 240,390 235,360 230,330 225,300 230,280 Z" 
+                  fill="#1e3a5f" stroke="#2d5a8e" stroke-width="1" opacity="0.6"/>
+            <!-- Europe -->
+            <path d="M 440,80 L 470,75 500,80 530,85 550,95 545,110 535,125 520,130 500,135 480,130 460,120 450,105 445,90 Z" 
+                  fill="#1e3a5f" stroke="#2d5a8e" stroke-width="1" opacity="0.6"/>
+            <!-- Africa -->
+            <path d="M 450,180 L 480,170 510,175 540,185 550,210 555,240 550,270 540,300 525,330 510,350 490,360 470,350 455,330 445,300 440,270 440,240 445,210 Z" 
+                  fill="#1e3a5f" stroke="#2d5a8e" stroke-width="1" opacity="0.6"/>
+            <!-- Asia -->
+            <path d="M 560,70 L 600,60 650,65 700,70 750,80 790,100 810,120 800,140 780,160 750,175 720,180 690,185 660,180 630,170 600,155 580,140 565,120 555,100 Z" 
+                  fill="#1e3a5f" stroke="#2d5a8e" stroke-width="1" opacity="0.6"/>
+            <!-- Southeast Asia / Indonesia -->
+            <path d="M 700,220 L 730,215 760,220 780,230 790,240 780,250 760,255 730,250 710,240 Z" 
+                  fill="#1e3a5f" stroke="#2d5a8e" stroke-width="1" opacity="0.6"/>
+            <!-- Australia -->
+            <path d="M 770,320 L 810,310 850,315 880,330 890,355 880,380 860,395 830,400 800,395 780,380 770,355 Z" 
+                  fill="#1e3a5f" stroke="#2d5a8e" stroke-width="1" opacity="0.6"/>
+
+            <!-- City markers -->
+            <% cities.forEach(function(city, index) { %>
+              <% 
+                // Convert lat/lon to SVG coordinates using Mercator-like projection
+                const x = ((city.lon + 180) / 360) * 1000;
+                const y = ((90 - city.lat) / 180) * 500;
+              %>
+              <g class="city-marker" data-city-id="<%= city.id %>" data-index="<%= index %>">
+                <!-- Outer pulse ring -->
+                <circle cx="<%= x %>" cy="<%= y %>" r="8" fill="none" stroke="#818cf8" stroke-width="1.5" class="pulse-dot" style="animation-delay: <%= index * 0.3 %>s"/>
+                <!-- Inner dot -->
+                <circle cx="<%= x %>" cy="<%= y %>" r="4" fill="#818cf8" stroke="#c7d2fe" stroke-width="1.5"/>
+                <!-- City label -->
+                <text x="<%= x %>" y="<%= y - 14 %>" text-anchor="middle" fill="#e0e7ff" font-size="11" font-weight="600"><%= city.name %></text>
+                <!-- Time label (updated via JS) -->
+                <text x="<%= x %>" y="<%= y + 22 %>" text-anchor="middle" fill="#a5b4fc" font-size="9" id="time-<%= city.id %>">--:--</text>
+              </g>
+            <% }); %>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Callout (hover tooltip) -->
+      <div id="weather-callout" class="callout">
+        <div class="bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-indigo-500/30 p-5 min-w-[240px]">
+          <div class="flex items-center justify-between mb-3">
+            <h3 id="callout-city" class="text-white font-bold text-lg"></h3>
+            <span id="callout-emoji" class="text-3xl"></span>
+          </div>
+          <p id="callout-desc" class="text-indigo-300 text-sm mb-3"></p>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-white/5 rounded-lg p-2 text-center">
+              <p class="text-xs text-gray-400">Temp</p>
+              <p id="callout-temp" class="text-white font-bold text-lg"></p>
+            </div>
+            <div class="bg-white/5 rounded-lg p-2 text-center">
+              <p class="text-xs text-gray-400">Humidity</p>
+              <p id="callout-humidity" class="text-white font-bold text-lg"></p>
+            </div>
+            <div class="bg-white/5 rounded-lg p-2 text-center">
+              <p class="text-xs text-gray-400">Wind</p>
+              <p id="callout-wind" class="text-white font-bold text-lg"></p>
+            </div>
+            <div class="bg-white/5 rounded-lg p-2 text-center">
+              <p class="text-xs text-gray-400">Local Time</p>
+              <p id="callout-time" class="text-white font-bold text-sm"></p>
+            </div>
+          </div>
+          <div class="mt-3 text-center">
+            <p class="text-xs text-indigo-400">Click for detailed forecast →</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- City Cards Grid -->
+    <div class="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-6xl mx-auto" id="city-cards">
+      <% cities.forEach(function(city) { %>
+        <a href="/city/<%= city.id %>" target="_blank" class="block backdrop-blur-xl bg-white/5 rounded-2xl p-4 border border-white/10 hover:border-indigo-500/50 hover:bg-white/10 transition-all duration-200 group">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-white font-semibold text-sm"><%= city.name %></span>
+            <span id="card-emoji-<%= city.id %>" class="text-xl">⏳</span>
+          </div>
+          <p class="text-xs text-gray-400"><%= city.continent %></p>
+          <p id="card-time-<%= city.id %>" class="text-indigo-300 text-sm font-mono mt-1">--:--</p>
+          <p id="card-temp-<%= city.id %>" class="text-white font-bold text-lg mt-1">--°C</p>
+        </a>
+      <% }); %>
+    </div>
+
+    <!-- Footer -->
     <div class="mt-8 max-w-6xl mx-auto">
-      <div class="backdrop-blur-xl bg-white/80 rounded-2xl shadow-lg p-6 border border-white/20">
-        <div class="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
+      <div class="backdrop-blur-xl bg-white/5 rounded-2xl p-5 border border-white/10">
+        <div class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0">
           <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
+            <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <span class="text-sm">🌐</span>
             </div>
             <div>
-              <p class="text-sm font-semibold text-gray-700">Powered by Azure Maps</p>
-              <p class="text-xs text-gray-500">Real-time weather data</p>
+              <p class="text-sm font-semibold text-white/80">Powered by Open-Meteo</p>
+              <p class="text-xs text-gray-400">Free open-source weather API</p>
             </div>
           </div>
-          <div class="flex items-center space-x-4">
-            <button onclick="location.reload()" class="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-              </svg>
-              <span class="text-sm font-medium">Refresh</span>
-            </button>
-          </div>
+          <button onclick="location.reload()" class="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all duration-200 shadow-md text-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            <span>Refresh</span>
+          </button>
         </div>
       </div>
     </div>
   </main>
 
-  <!-- Live clock update script -->
   <script>
-    function updateTime() {
-      const now = new Date();
-      const timeStr = now.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-      });
-      document.getElementById('live-time').textContent = timeStr;
-    }
-    updateTime();
-    setInterval(updateTime, 1000);
-  </script>
+    // City data from server
+    const cities = <%- JSON.stringify(cities) %>;
+    let weatherData = {};
 
+    // Update local times for all cities
+    function updateCityTimes() {
+      cities.forEach(city => {
+        try {
+          const now = new Date();
+          const timeStr = now.toLocaleTimeString('en-US', {
+            timeZone: city.timezone,
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+          });
+          const timeEl = document.getElementById('time-' + city.id);
+          if (timeEl) timeEl.textContent = timeStr;
+          const cardTimeEl = document.getElementById('card-time-' + city.id);
+          if (cardTimeEl) cardTimeEl.textContent = timeStr;
+        } catch (e) {
+          // Timezone not supported in this browser
+        }
+      });
+    }
+
+    // Fetch weather data
+    async function fetchWeather() {
+      try {
+        const response = await fetch('/api/weather');
+        const data = await response.json();
+        weatherData = {};
+        data.forEach(item => {
+          weatherData[item.id] = item;
+          // Update city cards
+          const emojiEl = document.getElementById('card-emoji-' + item.id);
+          const tempEl = document.getElementById('card-temp-' + item.id);
+          if (emojiEl && item.emoji) emojiEl.textContent = item.emoji;
+          if (tempEl && item.temperature !== null) tempEl.textContent = item.temperature + '°C';
+        });
+      } catch (e) {
+        console.error('Failed to fetch weather:', e);
+      }
+    }
+
+    // Callout handling
+    const callout = document.getElementById('weather-callout');
+    const mapContainer = document.getElementById('map-container');
+    let calloutVisible = false;
+    let activeCity = null;
+
+    document.querySelectorAll('.city-marker').forEach(marker => {
+      marker.addEventListener('mouseenter', function(e) {
+        const cityId = this.dataset.cityId;
+        const weather = weatherData[cityId];
+        if (!weather) return;
+
+        activeCity = cityId;
+        document.getElementById('callout-city').textContent = weather.name;
+        document.getElementById('callout-emoji').textContent = weather.emoji || '🌡️';
+        document.getElementById('callout-desc').textContent = weather.description || 'Loading...';
+        document.getElementById('callout-temp').textContent = weather.temperature !== null ? weather.temperature + '°C' : '--';
+        document.getElementById('callout-humidity').textContent = weather.humidity !== undefined ? weather.humidity + '%' : '--';
+        document.getElementById('callout-wind').textContent = weather.windSpeed !== undefined ? weather.windSpeed + ' km/h' : '--';
+        
+        const now = new Date();
+        try {
+          const timeStr = now.toLocaleTimeString('en-US', {
+            timeZone: weather.timezone,
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+          });
+          document.getElementById('callout-time').textContent = timeStr;
+        } catch (err) {
+          document.getElementById('callout-time').textContent = '--:--';
+        }
+
+        // Position callout near the marker
+        const svg = document.getElementById('world-map');
+        const svgRect = svg.getBoundingClientRect();
+        const containerRect = mapContainer.getBoundingClientRect();
+        
+        const circle = this.querySelector('circle');
+        const cx = parseFloat(circle.getAttribute('cx'));
+        const cy = parseFloat(circle.getAttribute('cy'));
+        
+        const scaleX = svgRect.width / 1000;
+        const scaleY = svgRect.height / 500;
+        
+        let left = (svgRect.left - containerRect.left) + (cx * scaleX) + 15;
+        let top = (svgRect.top - containerRect.top) + (cy * scaleY) - 80;
+
+        // Keep callout within bounds
+        if (left + 260 > containerRect.width) {
+          left = left - 280;
+        }
+        if (top < 0) top = 10;
+
+        callout.style.left = left + 'px';
+        callout.style.top = top + 'px';
+        callout.classList.add('visible');
+        calloutVisible = true;
+      });
+
+      marker.addEventListener('mouseleave', function() {
+        setTimeout(() => {
+          if (!callout.matches(':hover')) {
+            callout.classList.remove('visible');
+            calloutVisible = false;
+            activeCity = null;
+          }
+        }, 100);
+      });
+
+      // Click to open city detail page
+      marker.addEventListener('click', function() {
+        const cityId = this.dataset.cityId;
+        window.open('/city/' + cityId, '_blank');
+      });
+    });
+
+    // Hide callout when leaving it
+    callout.addEventListener('mouseleave', function() {
+      callout.classList.remove('visible');
+      calloutVisible = false;
+      activeCity = null;
+    });
+
+    // Click on callout to open city page
+    callout.addEventListener('click', function() {
+      if (activeCity) {
+        window.open('/city/' + activeCity, '_blank');
+      }
+    });
+
+    // Initialize
+    updateCityTimes();
+    setInterval(updateCityTimes, 1000);
+    fetchWeather();
+    // Refresh weather every 5 minutes
+    setInterval(fetchWeather, 300000);
+  </script>
 </body>
 </html>
