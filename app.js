@@ -73,7 +73,16 @@ app.get('/', (req, res) => {
     })
   };
 
-  res.render('index', { dateTime, cities });
+  // Group cities by continent
+  const continents = {};
+  cities.forEach(city => {
+    if (!continents[city.continent]) {
+      continents[city.continent] = [];
+    }
+    continents[city.continent].push(city);
+  });
+
+  res.render('index', { dateTime, cities, continents });
 });
 
 // API endpoint for weather data of all cities
