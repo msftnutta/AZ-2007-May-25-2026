@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weather Forecast</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h1>Weather Forecast</h1>
+      <form id="weather-form">
+        <label for="lat">Latitude:</label>
+        <input type="text" id="lat" value="3.1390" />
+        <label for="lon">Longitude:</label>
+        <input type="text" id="lon" value="101.6869" />
+        <button type="submit">Get Weather</button>
+      </form>
+
+      <div id="current" style="margin-top: 1.5rem;"></div>
+      <div id="forecast" style="margin-top: 1.5rem;"></div>
+      <p id="error" class="error" style="display:none;"></p>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('weather-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const lat = document.getElementById('lat').value;
+      const lon = document.getElementById('lon').value;
+      const errorEl = document.getElementById('error');
+      const currentEl = document.getElementById('current');
+      const forecastEl = document.getElementById('forecast');
+
+      errorEl.style.display = 'none';
+      currentEl.innerHTML = 'Loading...';
+      forecastEl.innerHTML = '';
+
+      try {
+        const res = await fetch(`/weather/api?lat=${lat}&lon=${lon}`);
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || 'Failed to fetch weather');
+        }
+
+        if (data.current) {
+          const c = data.current;
+          currentEl.innerHTML = `
+            <h2>Current Conditions</h2>
+            <p class="description">${c.phrase}</p>
+            <p class="temperature">${c.temperature.value}${c.temperature.unit === 'C' ? '°C' : '°F'}</p>
+            <p class="detail">Humidity: ${c.relativeHumidity}%</p>
+            <p class="detail">Wind: ${c.wind.speed.value} ${c.wind.speed.unit}</p>
+          `;
+        }
+
+        if (data.forecast && data.forecast.length > 0) {
+          let html = '<h2>5-Day Forecast</h2><div style="display:flex;gap:1rem;flex-wrap:wrap;">';
+          data.forecast.forEach(day => {
+            html += `
+              <div style="background:#f3f4f6;border-radius:8px;padding:1rem;min-width:140px;text-align:center;">
+                <p><strong>${new Date(day.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</strong></p>
+                <p>${day.temperature.maximum.value}° / ${day.temperature.minimum.value}°</p>
+                <p style="font-size:0.85rem;color:#666;">${day.day.shortPhrase}</p>
+              </div>
+            `;
+          });
+          html += '</div>';
+          forecastEl.innerHTML = html;
+        }
+      } catch (err) {
+        currentEl.innerHTML = '';
+        errorEl.textContent = err.message;
+        errorEl.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>

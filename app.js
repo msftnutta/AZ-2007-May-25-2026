@@ -13,6 +13,10 @@ app.set('views', path.join(__dirname, 'views'));
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Weather route
+const weatherRouter = require('./routes/weather');
+app.use('/weather', weatherRouter);
+
 // Main route
 app.get('/', async (req, res) => {
   const now = new Date();
@@ -39,11 +43,11 @@ app.get('/', async (req, res) => {
       throw new Error('AZURE_MAPS_KEY is not set in .env file');
     }
 
-    // Default location: Kuala Lumpur, Malaysia
-    const lat = process.env.LATITUDE || '3.1390';
-    const lon = process.env.LONGITUDE || '101.6869';
+    // Default location: Singapore
+    const lat = process.env.LATITUDE || '1.3521';
+    const lon = process.env.LONGITUDE || '103.8198';
 
-    const url = `https://c176813f-72af-4d0b-93ca-1950838ab48c.eastus.account.maps.azure.com/weather/currentConditions/json`;
+    const url = `https://atlas.microsoft.com/weather/currentConditions/json`;
     const response = await axios.get(url, {
       params: {
         'api-version': '1.1',
