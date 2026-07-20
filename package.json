@@ -20,7 +20,7 @@
   "homepage": "https://github.com/msftnutta/AZ-2007-May-25-2026#readme",
   "dependencies": {
     "@azure/identity": "^4.13.1",
-    "axios": "^1.16.1",
+    "axios": "^1.18.0",
     "dotenv": "^17.4.2",
     "ejs": "^5.0.2",
     "express": "^5.2.1"
